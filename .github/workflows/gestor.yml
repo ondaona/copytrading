@@ -10,6 +10,10 @@ on:
         description: "Solo mandar un mensaje de prueba a Telegram"
         type: boolean
         default: false
+      forzar_cambio:
+        description: "Rehacer hoy la selección aunque no sea día de cambio"
+        type: boolean
+        default: false
 
 permissions:
   contents: write           # guarda estado.json y el panel en el propio repositorio
@@ -36,7 +40,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python gestor.py ${{ inputs.prueba && '--prueba' || '' }}
+        run: python gestor.py ${{ inputs.prueba && '--prueba' || '' }} ${{ inputs.forzar_cambio && '--forzar-cambio' || '' }}
 
       - name: Guardar el estado y el panel
         # También cuando el paso anterior falla: el panel muestra el error y la ejecución siguiente reintenta.
@@ -49,6 +53,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "estado: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          # por si mientras corría se ha cambiado config.json desde el móvil
+          git pull --rebase
           git push
 
       - name: Avisar si el trabajo ha fallado

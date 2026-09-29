@@ -20,6 +20,7 @@ import datetime as dt
 import html
 import json
 import os
+import re
 import statistics
 import sys
 import time
@@ -606,10 +607,12 @@ def main():
         print("enviado" if enviado else "no enviado")
         return 0 if enviado else 1
     if "--estado" in args:
-        print(json.dumps({k: est[k] for k in ("modo", "inicio", "efectivo", "ultimo_cambio", "ultima_ejecucion")}, ensure_ascii=False))
-        for c in est["copias"]:
-            print(f"  {c['usuario']:20s} {valor_eur(c, est):9.2f} {valor_eur(c, est) / c['invertido'] - 1:+.2%}")
-        print("total", round(total(est), 2))
+        # el mismo resumen que el mensaje mensual, en texto plano y sin tocar nada
+        texto = mensaje(est, cfg, [], True).replace("resumen del mes", "estado actual")
+        texto = re.sub(r"<[^>]+>", "", texto).replace("Sin rotaciones: ", "Selección vigente: ")
+        print(texto)
+        print(f"\nÚltima ejecución: {est.get('ultima_ejecucion')} · error: {est.get('ultimo_error') or 'ninguno'}"
+              f" · mercado del {est.get('mercado', {}).get('fecha', '—')}")
         return 0
     eventos, mensual = [], False
     hoy = ahora()
