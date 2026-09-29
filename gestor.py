@@ -465,8 +465,9 @@ def main():
     cfg = cargar(F_CONFIG)
     est = cargar(F_ESTADO) or estado_vacio(cfg)
     if "--prueba" in args:
-        print("enviado" if telegram("🔧 Prueba del gestor de copy trading (papel).") else "no enviado")
-        return 0
+        enviado = telegram("🔧 Prueba del gestor de copy trading (papel).")
+        print("enviado" if enviado else "no enviado")
+        return 0 if enviado else 1
     if "--estado" in args:
         print(json.dumps({k: est[k] for k in ("modo", "inicio", "efectivo", "ultimo_cambio", "ultima_ejecucion")}, ensure_ascii=False))
         for c in est["copias"]:

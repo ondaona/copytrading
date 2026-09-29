@@ -5,6 +5,11 @@ on:
     # 06:30 UTC a diario: eToro ya ha cerrado el día anterior en todos los mercados.
     - cron: "30 6 * * *"
   workflow_dispatch:        # botón para lanzarlo a mano desde la pestaña Actions
+    inputs:
+      prueba:
+        description: "Solo mandar un mensaje de prueba a Telegram"
+        type: boolean
+        default: false
 
 permissions:
   contents: write           # guarda estado.json y el panel en el propio repositorio
@@ -31,11 +36,11 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python gestor.py
+        run: python gestor.py ${{ inputs.prueba && '--prueba' || '' }}
 
       - name: Guardar el estado y el panel
         # También cuando el paso anterior falla: el panel muestra el error y la ejecución siguiente reintenta.
-        if: always()
+        if: always() && !inputs.prueba
         run: |
           git add estado.json docs/index.html
           if git diff --cached --quiet; then
