@@ -16,7 +16,9 @@
    "semanas_verde": 80.56,
    "meses_verde": 84.85,
    "ganancia_2a": 12.09,
-   "riesgo": 2
+   "riesgo": 2,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 14930196,
@@ -30,7 +32,9 @@
    "semanas_verde": 69.44,
    "meses_verde": 87.88,
    "ganancia_2a": 7.82,
-   "riesgo": 2
+   "riesgo": 2,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 14467545,
@@ -44,13 +48,15 @@
    "semanas_verde": 72.92,
    "meses_verde": 81.82,
    "ganancia_2a": 53.06,
-   "riesgo": 3
+   "riesgo": 3,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 16919151,
    "usuario": "Philipp_Hahn",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 498.54,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": -3.94,
@@ -58,7 +64,9 @@
    "semanas_verde": 77.08,
    "meses_verde": 75.76,
    "ganancia_2a": 16.02,
-   "riesgo": 1
+   "riesgo": 1,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 13178325,
@@ -72,7 +80,9 @@
    "semanas_verde": 64.58,
    "meses_verde": 84.85,
    "ganancia_2a": 84.94,
-   "riesgo": 4
+   "riesgo": 4,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 29111978,
@@ -86,7 +96,9 @@
    "semanas_verde": 70.14,
    "meses_verde": 78.79,
    "ganancia_2a": 54.26,
-   "riesgo": 4
+   "riesgo": 4,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 27294891,
@@ -100,13 +112,15 @@
    "semanas_verde": 69.44,
    "meses_verde": 78.79,
    "ganancia_2a": 230.24,
-   "riesgo": 4
+   "riesgo": 4,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 25840812,
    "usuario": "Alexander_Dimov",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 494.73,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": -3.2,
@@ -114,7 +128,9 @@
    "semanas_verde": 75.0,
    "meses_verde": 72.73,
    "ganancia_2a": 35.71,
-   "riesgo": 3
+   "riesgo": 3,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 27165404,
@@ -128,13 +144,15 @@
    "semanas_verde": 71.53,
    "meses_verde": 75.76,
    "ganancia_2a": 37.58,
-   "riesgo": 3
+   "riesgo": 3,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   },
   {
    "cid": 10606890,
    "usuario": "Kastro67",
    "invertido": 498.75,
-   "valor": 496.39,
+   "valor": 498.75,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": 1.57,
@@ -142,7 +160,9 @@
    "semanas_verde": 61.81,
    "meses_verde": 84.85,
    "ganancia_2a": 49.34,
-   "riesgo": 4
+   "riesgo": 4,
+   "fx_entrada": 1.13443,
+   "dias_sin_datos": 0
   }
  ],
  "ultimo_cambio": "2026-09",
@@ -476,8 +496,9 @@
  "historia": [
   {
    "fecha": "2026-09-29",
-   "valor": 4970.73,
-   "referencia": 99.164
+   "valor": 4968.86,
+   "referencia": 99.164,
+   "msci": 182.2766
   }
  ],
  "registro": [
@@ -530,7 +551,18 @@
   "valor": 99.164,
   "ultimo_mtd": -0.33
  },
- "ultima_ejecucion": "2026-09-29 20:57",
+ "ultima_ejecucion": "2026-09-29 21:29",
  "ultimo_error": null,
- "universo": 1088
+ "universo": 1088,
+ "inicio_mes": {
+  "mes": "2026-09",
+  "valor": 4970.73,
+  "msci": null
+ },
+ "mercado": {
+  "fecha": "2026-09-29",
+  "urth": 206.77999877929688,
+  "eurusd": 1.13443,
+  "msci_eur": 182.2766
+ }
 }
