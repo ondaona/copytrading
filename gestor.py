@@ -206,6 +206,10 @@ def eur(x):
     return f"{x:,.0f} €".replace(",", ".").replace("-", "−")
 
 
+def eur_signo(x):
+    return f"{x:+,.0f} €".replace(",", ".").replace("-", "−")
+
+
 def pct(x, dec=1):
     return f"{x * 100:+.{dec}f} %".replace(".", ",").replace("-", "−")
 
@@ -217,7 +221,7 @@ def abrir(est, cfg, cand, importe, mes, eventos, motivo):
     est["efectivo"] = round(est["efectivo"] - importe, 2)
     est["costes"] = round(est["costes"] + importe - c["invertido"], 2)
     est["copias"].append(c)
-    apuntar(est, f"Abierta la copia de {cand['usuario']} con {eur(importe)} ({motivo})", eventos)
+    apuntar(est, f"Abierta la copia de {cand['usuario']}: invertidos {eur(importe)} ({motivo})", eventos)
 
 
 def cerrar(est, cfg, copia, eventos, motivo):
@@ -225,8 +229,9 @@ def cerrar(est, cfg, copia, eventos, motivo):
     est["efectivo"] = round(est["efectivo"] + neto, 2)
     est["costes"] = round(est["costes"] + copia["valor"] - neto, 2)
     est["copias"] = [c for c in est["copias"] if c["cid"] != copia["cid"]]
-    r = copia["valor"] / copia["invertido"] - 1
-    apuntar(est, f"Cerrada la copia de {copia['usuario']} en {eur(copia['valor'])} ({pct(r)}; {motivo})", eventos)
+    r = neto / copia["invertido"] - 1
+    apuntar(est, f"Cerrada la copia de {copia['usuario']}: invertidos {eur(copia['invertido'])}, sale con {eur(neto)}"
+                 f" → resultado {eur_signo(neto - copia['invertido'])} ({pct(r)}; {motivo})", eventos)
 
 
 def rebalancear(est, cfg, eventos):
@@ -337,15 +342,30 @@ def telegram(texto):
 
 def mensaje(est, cfg, eventos, mensual):
     v = total(est)
-    r = v / est["capital_inicial"] - 1
-    cab = "📊 <b>Copy trading eToro · resumen del mes</b>" if mensual else "📋 <b>Copy trading eToro</b>"
-    lineas = [cab, f"<i>En papel: dinero simulado, sin órdenes reales.</i>", "",
-              f"Cartera: <b>{eur(v)}</b> ({pct(r)} sobre {eur(est['capital_inicial'])})"]
+    ini = est["capital_inicial"]
+    en_copias = sum(c["invertido"] for c in est["copias"])
+    cab = "📊 <b>Copy trading eToro · resumen del mes</b>" if mensual else "📋 <b>Copy trading eToro · movimiento</b>"
+    lineas = [cab, f"<i>En papel: dinero simulado, sin órdenes reales.</i>"]
     if eventos:
         lineas += ["", *[f"• {html.escape(e)}" for e in eventos]]
     elif mensual:
         lineas += ["", f"Sin rotaciones: los {len(est['copias'])} traders siguen entre el mejor "
                        f"{round(cfg['mantener_si_sigue_en_el_mejor'] * 100)} % y pasan los filtros."]
+    lineas += ["", f"Cuenta: <b>{eur(v)}</b>",
+               f"• Capital puesto: {eur(ini)} · resultado: <b>{eur_signo(v - ini)}</b> ({pct(v / ini - 1)})",
+               f"• En {len(est['copias'])} copias: {eur(en_copias)} invertidos, valen {eur(v - est['efectivo'])}"
+               f" · efectivo: {eur(est['efectivo'])}"]
+    im = est.get("inicio_mes")
+    if im and im["valor"]:
+        lineas.append(f"• Este mes: <b>{pct(v / im['valor'] - 1)}</b> ({eur_signo(v - im['valor'])})")
+    base = est.get("base")
+    if base and base["valor"]:
+        d = base["fecha"]
+        lineas.append(f"• Desde el {int(d[8:])}-{int(d[5:7])}-{d[:4]}: <b>{pct(v / base['valor'] - 1)}</b>"
+                      f" ({eur_signo(v - base['valor'])})")
+    else:
+        d = cfg["cuenta_desde"]
+        lineas.append(f"• El acumulado se cuenta desde el {int(d[8:])}-{int(d[5:7])}-{d[:4]}")
     if mensual:
         lineas += ["", "Copias:"] + [f"• {html.escape(c['usuario'])}: {eur(c['valor'])} ({pct(c['valor'] / c['invertido'] - 1)})"
                                      for c in sorted(est["copias"], key=lambda c: -c["valor"])]
@@ -483,6 +503,11 @@ def main():
     try:
         if est["inicio"] is None:
             est["inicio"] = hoy.strftime("%Y-%m-%d")
+        # antes de valorar, el total es el cierre de la ejecución anterior: sirve de punto de partida
+        if est.get("inicio_mes", {}).get("mes") != hoy.strftime("%Y-%m"):
+            est["inicio_mes"] = {"mes": hoy.strftime("%Y-%m"), "valor": round(total(est), 2)}
+        if not est.get("base") and hoy.strftime("%Y-%m-%d") >= cfg["cuenta_desde"]:
+            est["base"] = {"fecha": cfg["cuenta_desde"], "valor": round(total(est), 2)}
         diario(est, cfg, eventos)
         toca = est["ultimo_cambio"] != hoy.strftime("%Y-%m") and hoy.day >= cfg["dia_del_cambio"]
         if toca or not est["copias"] or "--forzar-cambio" in args:
