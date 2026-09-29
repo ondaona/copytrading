@@ -218,6 +218,8 @@ def abrir(est, cfg, cand, importe, mes, eventos, motivo):
     pausa()
     mtd = mes_en_curso(cand["cid"])
     c = nueva_copia(cand, importe, cfg, mes, mtd, ahora().strftime("%Y-%m-%d"))
+    if est.get("mercado", {}).get("eurusd"):
+        c["fx_entrada"] = est["mercado"]["eurusd"]
     est["efectivo"] = round(est["efectivo"] - importe, 2)
     est["costes"] = round(est["costes"] + importe - c["invertido"], 2)
     est["copias"].append(c)
@@ -225,9 +227,10 @@ def abrir(est, cfg, cand, importe, mes, eventos, motivo):
 
 
 def cerrar(est, cfg, copia, eventos, motivo):
-    neto = copia["valor"] * (1 - cfg["coste_por_lado"])
+    bruto = valor_eur(copia, est)
+    neto = bruto * (1 - cfg["coste_por_lado"])
     est["efectivo"] = round(est["efectivo"] + neto, 2)
-    est["costes"] = round(est["costes"] + copia["valor"] - neto, 2)
+    est["costes"] = round(est["costes"] + bruto - neto, 2)
     est["copias"] = [c for c in est["copias"] if c["cid"] != copia["cid"]]
     r = neto / copia["invertido"] - 1
     apuntar(est, f"Cerrada la copia de {copia['usuario']}: invertidos {eur(copia['invertido'])}, sale con {eur(neto)}"
@@ -253,8 +256,7 @@ def rebalancear(est, cfg, eventos):
     tengo = {c["cid"] for c in est["copias"]}
     entran = [r for r in uni if r["cid"] not in tengo and not vetado(est, r["cid"], mes)][: n - len(est["copias"])]
     if entran:
-        total = est["efectivo"] + sum(c["valor"] for c in est["copias"])
-        por_copia = min(total / n, est["efectivo"] / len(entran))
+        por_copia = min(total(est) / n, est["efectivo"] / len(entran))
         for r in entran:
             if por_copia < cfg["minimo_por_copia_eur"]:
                 apuntar(est, f"No se abre {r['usuario']}: {eur(por_copia)} no llega al mínimo de eToro", eventos)
@@ -325,7 +327,71 @@ def reponer(est, cfg, mes, eventos):
 
 
 def total(est):
-    return est["efectivo"] + sum(c["valor"] for c in est["copias"])
+    return est["efectivo"] + sum(valor_eur(c, est) for c in est["copias"])
+
+
+# ---------------------------------------------------------------- mercado: MSCI World y euro/dólar
+
+def yahoo_diario(simbolo):
+    """{'AAAA-MM-DD': cierre} de los últimos 3 meses."""
+    j = get(f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(simbolo)}?interval=1d&range=3mo")
+    r = j["chart"]["result"][0]
+    desfase = r["meta"].get("gmtoffset", 0)
+    cierres = r["indicators"]["quote"][0]["close"]
+    return {dt.datetime.fromtimestamp(t + desfase, dt.timezone.utc).strftime("%Y-%m-%d"): v
+            for t, v in zip(r["timestamp"], cierres) if v}
+
+
+def mercado(est):
+    """Actualiza el MSCI World (URTH, en dólares) pasado a euros y el cambio euro/dólar.
+    Si Yahoo no responde se conserva el último dato: la comparación no debe parar el gestor."""
+    try:
+        urth, fx = yahoo_diario("URTH"), yahoo_diario("EURUSD=X")
+    except (RuntimeError, KeyError, IndexError, TypeError) as e:
+        print("sin datos de mercado hoy:", e)
+        return
+    fu, fx_hoy = max(urth), fx[max(fx)]
+    est["mercado"] = {"fecha": fu, "urth": urth[fu], "eurusd": round(fx_hoy, 5), "msci_eur": round(urth[fu] / fx_hoy, 4)}
+    for c in est["copias"]:
+        if "fx_entrada" not in c:  # copias abiertas antes de contar el cambio: el de su día de entrada
+            dias = [d for d in fx if d <= c["entrada"]]
+            c["fx_entrada"] = round(fx[max(dias)] if dias else fx_hoy, 5)
+
+
+def valor_eur(c, est):
+    """Las copias rinden en dólares: su valor en euros cambia también con el euro/dólar."""
+    fx = est.get("mercado", {}).get("eurusd")
+    if not fx or "fx_entrada" not in c:
+        return c["valor"]
+    return c["valor"] * c["fx_entrada"] / fx
+
+
+def frente_al_indice(est, desde):
+    """(rentabilidad de la cartera, rentabilidad del MSCI World en €) desde un punto guardado, o None."""
+    msci = est.get("mercado", {}).get("msci_eur")
+    if not desde or not desde.get("valor") or not desde.get("msci") or not msci:
+        return None
+    return total(est) / desde["valor"] - 1, msci / desde["msci"] - 1
+
+
+def fecha_es(d):
+    return f"{int(d[8:])}-{int(d[5:7])}-{d[:4]}"
+
+
+def regla_real(est, cfg):
+    """La regla para pasar a dinero real, fijada antes de ver resultados: (texto, fecha de veredicto, cumple o None)."""
+    r = cfg["regla_para_real"]
+    desde = cfg["cuenta_desde"]
+    fin = sumar_meses(desde[:7], r["meses"]) + desde[7:]
+    cond = (f"el {fecha_es(fin)}, la cartera en euros debe ir al menos {r['ventaja_minima_pt']:g} pt por delante "
+            f"del MSCI World en euros, contando desde el {fecha_es(desde)}")
+    cmp = frente_al_indice(est, est.get("base"))
+    if cmp is None:
+        return f"{cond}. Aún no hay datos.", fin, None
+    ventaja = (cmp[0] - cmp[1]) * 100
+    cumple = ventaja >= r["ventaja_minima_pt"]
+    hoy = f"{ventaja:+.1f} pt".replace(".", ",").replace("-", "−")
+    return f"{cond}. Hoy: {hoy} ({'cumple' if cumple else 'no cumple'}).", fin, cumple
 
 
 # ---------------------------------------------------------------- Telegram
@@ -373,20 +439,27 @@ def mensaje(est, cfg, eventos, mensual):
                f"• Capital puesto: {eur(ini)} · resultado: <b>{eur_signo(v - ini)}</b> ({pct(v / ini - 1)})",
                f"• En {len(est['copias'])} copias: {eur(en_copias)} invertidos, valen {eur(v - est['efectivo'])}"
                f" · efectivo: {eur(est['efectivo'])}"]
+    def indice(desde):
+        cmp = frente_al_indice(est, desde)
+        if cmp is None:
+            return ""
+        ventaja = f"{(cmp[0] - cmp[1]) * 100:+.1f} pt".replace(".", ",").replace("-", "−")
+        return f" · MSCI World {pct(cmp[1])} → {ventaja}"
     im = est.get("inicio_mes")
     if im and im["valor"]:
-        lineas.append(f"• Este mes: <b>{pct(v / im['valor'] - 1)}</b> ({eur_signo(v - im['valor'])})")
+        lineas.append(f"• Este mes: <b>{pct(v / im['valor'] - 1)}</b> ({eur_signo(v - im['valor'])}){indice(im)}")
     base = est.get("base")
     if base and base["valor"]:
-        d = base["fecha"]
-        lineas.append(f"• Desde el {int(d[8:])}-{int(d[5:7])}-{d[:4]}: <b>{pct(v / base['valor'] - 1)}</b>"
-                      f" ({eur_signo(v - base['valor'])})")
+        lineas.append(f"• Desde el {fecha_es(base['fecha'])}: <b>{pct(v / base['valor'] - 1)}</b>"
+                      f" ({eur_signo(v - base['valor'])}){indice(base)}")
     else:
-        d = cfg["cuenta_desde"]
-        lineas.append(f"• El acumulado se cuenta desde el {int(d[8:])}-{int(d[5:7])}-{d[:4]}")
+        lineas.append(f"• El acumulado se cuenta desde el {fecha_es(cfg['cuenta_desde'])}")
     if mensual:
-        lineas += ["", "Copias:"] + [f"• {html.escape(c['usuario'])}: {eur(c['valor'])} ({pct(c['valor'] / c['invertido'] - 1)})"
-                                     for c in sorted(est["copias"], key=lambda c: -c["valor"])]
+        texto, _, _ = regla_real(est, cfg)
+        lineas += ["", f"Regla para pasar a dinero real: {html.escape(texto)}"]
+        lineas += ["", "Copias:"] + [f"• {html.escape(c['usuario'])}: {eur(valor_eur(c, est))} ({pct(valor_eur(c, est) / c['invertido'] - 1)})"
+                                     for c in sorted(est["copias"], key=lambda c: -valor_eur(c, est))]
+    lineas.append("<i>Todo en euros, con el cambio euro/dólar incluido.</i>")
     lineas += ["", f"Panel: {cfg['panel_url']}"]
     return "\n".join(lineas)
 
@@ -401,27 +474,34 @@ def panel(est, cfg):
     peor = copias[0] if copias else None
     stop = cfg["stop_por_trader"]
     filas = []
-    for c in sorted(est["copias"], key=lambda c: -c["valor"] / c["invertido"]):
-        r = c["valor"] / c["invertido"] - 1
-        usado = max(0.0, -r) / stop
+    for c in sorted(est["copias"], key=lambda c: -valor_eur(c, est) / c["invertido"]):
+        r = valor_eur(c, est) / c["invertido"] - 1
+        usado = max(0.0, 1 - c["valor"] / c["invertido"]) / stop  # el stop mira al trader, en dólares
         color = "var(--rojo)" if usado > .5 else "var(--ambar)" if usado > .2 else "var(--verde)"
         filas.append(
             f'<div class="fila"><span class="nom"><a href="https://www.etoro.com/people/{html.escape(c["usuario"].lower())}">'
             f'{html.escape(c["usuario"])}</a><small>desde {c["entrada"]} · {c["semanas_verde"]:.0f} % semanas en verde · riesgo {c["riesgo"]}</small></span>'
-            f'<span class="num">{eur(c["valor"])}</span><span class="num {"pos" if r >= 0 else "neg"}">{pct(r)}</span>'
+            f'<span class="num">{eur(valor_eur(c, est))}</span><span class="num {"pos" if r >= 0 else "neg"}">{pct(r)}</span>'
             f'<span class="barra"><i style="width:{max(3, min(100, usado * 100)):.0f}%;background:{color}"></i></span></div>')
     hist = est["historia"][-400:]
     svg = ""
     if len(hist) >= 2:
         xs = [h["valor"] for h in hist]
-        lo, hi = min(xs + [ini]), max(xs + [ini])
+        # MSCI World en euros con el mismo dinero que la cartera tenía el primer día con dato del índice
+        k = next((i for i, h in enumerate(hist) if h.get("msci")), None)
+        ms = [(i, hist[k]["valor"] * h["msci"] / hist[k]["msci"]) for i, h in enumerate(hist) if k is not None and i >= k and h.get("msci")]
+        todos = xs + [m for _, m in ms] + [ini]
+        lo, hi = min(todos), max(todos)
         hi = hi if hi > lo else lo + 1
         W, H = 640, 140
-        pts = " ".join(f"{i / (len(xs) - 1) * W:.1f},{H - (x - lo) / (hi - lo) * (H - 10) - 5:.1f}" for i, x in enumerate(xs))
-        y0 = H - (ini - lo) / (hi - lo) * (H - 10) - 5
-        svg = (f'<svg viewBox="0 0 {W} {H}" preserveAspectRatio="none" role="img" aria-label="Evolución del valor de la cartera">'
-               f'<line x1="0" x2="{W}" y1="{y0:.1f}" y2="{y0:.1f}" class="base"/><polyline points="{pts}" class="linea"/></svg>'
-               f'<p class="pie">{hist[0]["fecha"]} → {hist[-1]["fecha"]} · línea gris: capital inicial</p>')
+        y = lambda x: H - (x - lo) / (hi - lo) * (H - 10) - 5
+        pts = " ".join(f"{i / (len(xs) - 1) * W:.1f},{y(x):.1f}" for i, x in enumerate(xs))
+        pms = " ".join(f"{i / (len(xs) - 1) * W:.1f},{y(m):.1f}" for i, m in ms)
+        linea_ms = f'<polyline points="{pms}" class="indice"/>' if len(ms) >= 2 else ""
+        svg = (f'<svg viewBox="0 0 {W} {H}" preserveAspectRatio="none" role="img" aria-label="Evolución de la cartera frente al MSCI World">'
+               f'<line x1="0" x2="{W}" y1="{y(ini):.1f}" y2="{y(ini):.1f}" class="base"/>{linea_ms}<polyline points="{pts}" class="linea"/></svg>'
+               f'<p class="pie">{hist[0]["fecha"]} → {hist[-1]["fecha"]} · <span class="ley az"></span>cartera'
+               f' · <span class="ley ms"></span>MSCI World en € con el mismo dinero · discontinua: capital inicial</p>')
     else:
         svg = '<p class="pie">La gráfica aparece a partir del segundo día.</p>'
     registro = "".join(f'<li><time>{html.escape(e["fecha"])}</time> {html.escape(e["texto"])}</li>' for e in est["registro"][:40])
@@ -433,10 +513,22 @@ def panel(est, cfg):
            if est.get("ultimo_error") else "")
     modo = "Papel (dinero simulado)" if est["modo"] == "papel" else est["modo"]
     prox = siguiente_mes(est["ultimo_cambio"]) + f"-{cfg['dia_del_cambio']:02d}" if est.get("ultimo_cambio") else "pendiente"
-    datos = dict(valor=eur(v), dif=f"{v - ini:+,.0f} €".replace(",", ".").replace("-", "−"), pct=f"{pct(v / ini - 1)}",
+    cmp = frente_al_indice(est, est.get("base"))
+    if cmp:
+        vs_msci = f"{(cmp[0] - cmp[1]) * 100:+.1f} pt".replace(".", ",").replace("-", "−")
+        vs_lab = f"desde el {fecha_es(est['base']['fecha'])}: cartera {pct(cmp[0])} · índice {pct(cmp[1])}"
+    else:
+        vs_msci, vs_lab = "—", f"se compara desde el {fecha_es(cfg['cuenta_desde'])}"
+    texto_regla, fin, cumple = regla_real(est, cfg)
+    if est.get("veredicto"):
+        estado_regla = "Veredicto: cumple" if est["veredicto"]["cumple"] else "Veredicto: no cumple"
+    else:
+        estado_regla = "pendiente" if cumple is None else ("hoy cumple" if cumple else "hoy no cumple")
+    datos = dict(valor=eur(v), vs_msci=vs_msci, vs_lab=vs_lab, regla=html.escape(texto_regla), estado_regla=estado_regla,
+                 clase_regla="ok" if cumple else "", dif=f"{v - ini:+,.0f} €".replace(",", ".").replace("-", "−"), pct=f"{pct(v / ini - 1)}",
                  ref=f"{pct(ref)}", vs=f"{(v / ini - 1 - ref) * 100:+.1f} pt".replace(".", ",").replace("-", "−"),
                  peor=f"{pct(peor['valor'] / peor['invertido'] - 1)}" if peor else "—",
-                 peor_n=html.escape(peor["usuario"]) if peor else "sin copias",
+                 peor_n=html.escape(peor["usuario"]) + " · rentabilidad del trader en $" if peor else "sin copias",
                  costes=eur(est["costes"]), efectivo=eur(est["efectivo"]), stop=f"{stop:.0%}",
                  n=len(est["copias"]), ultima=html.escape(est.get("ultima_ejecucion") or "—"), prox=prox,
                  modo=modo, inicio=est.get("inicio") or "—", universo=est.get("universo", "—"))
@@ -470,7 +562,8 @@ a{color:var(--acento);text-decoration:none}.cab{display:flex;justify-content:spa
 .fila:last-child{border-bottom:0}.nom small{display:block;font-size:12px;color:var(--sec)}.num{text-align:right;font-variant-numeric:tabular-nums}
 .barra{height:7px;border-radius:4px;background:var(--suave);position:relative;overflow:hidden}.barra i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
 .cabfila{font-size:12px;color:var(--sec);border-bottom:1px solid var(--linea)}
-svg{width:100%;height:140px;display:block}.linea{fill:none;stroke:var(--acento);stroke-width:2;vector-effect:non-scaling-stroke}.base{stroke:var(--sec);stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+svg{width:100%;height:140px;display:block}.linea{fill:none;stroke:var(--acento);stroke-width:2;vector-effect:non-scaling-stroke}.base{stroke:var(--sec);stroke-dasharray:4 4;vector-effect:non-scaling-stroke}.indice{fill:none;stroke:var(--ambar);stroke-width:2;vector-effect:non-scaling-stroke}
+.ley{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px}.ley.az{background:var(--acento)}.ley.ms{background:var(--ambar)}
 .pie{font-size:12px;color:var(--sec);margin:6px 0 0}ul{list-style:none;padding:0;margin:0}li{padding:6px 0;border-bottom:1px solid var(--linea);font-size:14px}li:last-child{border-bottom:0}
 time{color:var(--sec);font-size:12px;margin-right:6px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--linea)}th{color:var(--sec);font-weight:500}
 .aviso{border:1px solid var(--rojo);border-radius:12px;padding:10px 14px;margin-bottom:12px}
@@ -481,10 +574,12 @@ time{color:var(--sec);font-size:12px;margin-right:6px}table{width:100%;border-co
 {{error}}
 <div class="cards">
 <div class="card"><p class="lab">Valor de la cartera</p><p class="big">{{valor}}</p><p class="lab">{{dif}} ({{pct}})</p></div>
-<div class="card"><p class="lab">Frente al conjunto</p><p class="big">{{vs}}</p><p class="lab">500 más copiados: {{ref}}</p></div>
+<div class="card"><p class="lab">Frente al MSCI World (en €)</p><p class="big">{{vs_msci}}</p><p class="lab">{{vs_lab}}</p><p class="lab">500 más copiados: {{ref}} en $ ({{vs}})</p></div>
 <div class="card"><p class="lab">Copia más cerca del stop</p><p class="big">{{peor}}</p><p class="lab">{{peor_n}}</p></div>
 <div class="card"><p class="lab">Costes y efectivo</p><p class="big">{{costes}}</p><p class="lab">{{efectivo}} sin invertir</p></div>
 </div>
+<h2>Regla para pasar a dinero real <span class="pill {{clase_regla}}">{{estado_regla}}</span></h2>
+<div class="caja"><p style="margin:6px 0">Fijada el 29-9-2026, antes de ver resultados: {{regla}}</p></div>
 <h2>Evolución</h2><div class="caja">{{grafica}}</div>
 <h2>Copias abiertas ({{n}})</h2>
 <div class="caja"><div class="fila cabfila"><span>Trader</span><span class="num">Valor</span><span class="num">Resultado</span><span>Distancia al stop</span></div>{{filas}}</div>
@@ -492,7 +587,7 @@ time{color:var(--sec);font-size:12px;margin-right:6px}table{width:100%;border-co
 <h2>Selección del mes</h2>
 <div class="caja"><table><tr><th>Puesto</th><th>Trader</th><th>Semanas en verde</th><th>Meses en verde</th><th>2 años</th><th>Riesgo</th><th>Copiado</th></tr>{{seleccion}}</table>
 <p class="pie">{{universo}} Popular Investors pasan los filtros (≥140 semanas, sin cripto, riesgo ≤6, +5 % en 2 años). Orden: semanas + meses en verde de los últimos 2 años.</p></div>
-<p class="pie">Simulación en papel con la rentabilidad pública de cada trader en eToro (en dólares; no incluye el cambio euro/dólar). Coste supuesto: 0,25 % por apertura y por cierre.</p>
+<p class="pie">Simulación en papel con la rentabilidad pública de cada trader en eToro. Valores en euros, con el cambio euro/dólar incluido (las copias rinden en dólares); la distancia al stop se mide sobre la rentabilidad del trader en dólares, como el stop de eToro. Índice: ETF iShares MSCI World (URTH) pasado a euros, datos de Yahoo Finance. Coste supuesto: 0,25 % por apertura y por cierre.</p>
 </main></body></html>"""
 
 
@@ -513,7 +608,7 @@ def main():
     if "--estado" in args:
         print(json.dumps({k: est[k] for k in ("modo", "inicio", "efectivo", "ultimo_cambio", "ultima_ejecucion")}, ensure_ascii=False))
         for c in est["copias"]:
-            print(f"  {c['usuario']:20s} {c['valor']:9.2f} {c['valor'] / c['invertido'] - 1:+.2%}")
+            print(f"  {c['usuario']:20s} {valor_eur(c, est):9.2f} {valor_eur(c, est) / c['invertido'] - 1:+.2%}")
         print("total", round(total(est), 2))
         return 0
     eventos, mensual = [], False
@@ -521,12 +616,22 @@ def main():
     try:
         if est["inicio"] is None:
             est["inicio"] = hoy.strftime("%Y-%m-%d")
-        # antes de valorar, el total es el cierre de la ejecución anterior: sirve de punto de partida
+        # antes de valorar, el total y el índice son el cierre de la ejecución anterior: sirven de punto de partida
+        msci_prev = est.get("mercado", {}).get("msci_eur")
         if est.get("inicio_mes", {}).get("mes") != hoy.strftime("%Y-%m"):
-            est["inicio_mes"] = {"mes": hoy.strftime("%Y-%m"), "valor": round(total(est), 2)}
+            est["inicio_mes"] = {"mes": hoy.strftime("%Y-%m"), "valor": round(total(est), 2), "msci": msci_prev}
         if not est.get("base") and hoy.strftime("%Y-%m-%d") >= cfg["cuenta_desde"]:
-            est["base"] = {"fecha": cfg["cuenta_desde"], "valor": round(total(est), 2)}
+            est["base"] = {"fecha": cfg["cuenta_desde"], "valor": round(total(est), 2), "msci": msci_prev}
+        mercado(est)
         diario(est, cfg, eventos)
+        texto, fin, cumple = regla_real(est, cfg)
+        if hoy.strftime("%Y-%m-%d") >= fin and not est.get("veredicto") and cumple is not None:
+            est["veredicto"] = {"fecha": hoy.strftime("%Y-%m-%d"), "cumple": cumple}
+            cart, ind = frente_al_indice(est, est["base"])
+            ventaja = f"{(cart - ind) * 100:+.1f} pt".replace(".", ",").replace("-", "−")
+            apuntar(est, f"{'✅' if cumple else '❌'} Veredicto: la regla para pasar a dinero real "
+                         f"{'SE CUMPLE' if cumple else 'NO se cumple'}. Desde el {fecha_es(cfg['cuenta_desde'])}: "
+                         f"cartera {pct(cart)}, MSCI World {pct(ind)} (en euros) → {ventaja}", eventos)
         toca = est["ultimo_cambio"] != hoy.strftime("%Y-%m") and hoy.day >= cfg["dia_del_cambio"]
         if toca or not est["copias"] or "--forzar-cambio" in args:
             rebalancear(est, cfg, eventos)
@@ -540,7 +645,8 @@ def main():
     est["ultima_ejecucion"] = hoy.strftime("%Y-%m-%d %H:%M")
     fecha = hoy.strftime("%Y-%m-%d")
     est["historia"] = [h for h in est["historia"] if h["fecha"] != fecha] + [{"fecha": fecha, "valor": round(total(est), 2),
-                                                                              "referencia": est["referencia"]["valor"]}]
+                                                                              "referencia": est["referencia"]["valor"],
+                                                                              "msci": est.get("mercado", {}).get("msci_eur")}]
     guardar(F_ESTADO, est)
     panel(est, cfg)
     print(f"total {total(est):.2f} €, {len(est['copias'])} copias; eventos: {len(eventos)}")

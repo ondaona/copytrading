@@ -15,5 +15,9 @@
     "ganancia_2a_min_pct": 5
   },
   "cuenta_desde": "2026-10-01",
+  "regla_para_real": {
+    "meses": 6,
+    "ventaja_minima_pt": 0
+  },
   "panel_url": "https://ondaona.github.io/copytrading/"
 }
