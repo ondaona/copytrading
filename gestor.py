@@ -341,7 +341,11 @@ def mensaje(est, cfg, eventos, mensual):
     cab = "📊 <b>Copy trading eToro · resumen del mes</b>" if mensual else "📋 <b>Copy trading eToro</b>"
     lineas = [cab, f"<i>En papel: dinero simulado, sin órdenes reales.</i>", "",
               f"Cartera: <b>{eur(v)}</b> ({pct(r)} sobre {eur(est['capital_inicial'])})"]
-    lineas += ["", *[f"• {html.escape(e)}" for e in eventos]]
+    if eventos:
+        lineas += ["", *[f"• {html.escape(e)}" for e in eventos]]
+    elif mensual:
+        lineas += ["", f"Sin rotaciones: los {len(est['copias'])} traders siguen entre el mejor "
+                       f"{round(cfg['mantener_si_sigue_en_el_mejor'] * 100)} % y pasan los filtros."]
     if mensual:
         lineas += ["", "Copias:"] + [f"• {html.escape(c['usuario'])}: {eur(c['valor'])} ({pct(c['valor'] / c['invertido'] - 1)})"
                                      for c in sorted(est["copias"], key=lambda c: -c["valor"])]
@@ -499,7 +503,7 @@ def main():
     print(f"total {total(est):.2f} €, {len(est['copias'])} copias; eventos: {len(eventos)}")
     for e in eventos:
         print(" -", e)
-    if eventos and "--sin-telegram" not in args:
+    if (eventos or mensual) and "--sin-telegram" not in args:
         telegram(mensaje(est, cfg, eventos, mensual))
     return codigo
 
