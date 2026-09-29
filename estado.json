@@ -8,7 +8,7 @@
    "cid": 1297388,
    "usuario": "einargust",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 497.0,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": -0.24,
@@ -22,7 +22,7 @@
    "cid": 14930196,
    "usuario": "bhavesh_spx",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 497.81,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": 0.64,
@@ -36,7 +36,7 @@
    "cid": 14467545,
    "usuario": "SPX5000Trading",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 495.63,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": 2.29,
@@ -64,7 +64,7 @@
    "cid": 13178325,
    "usuario": "Cosminpa",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 496.98,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": 1.36,
@@ -78,7 +78,7 @@
    "cid": 29111978,
    "usuario": "AndreaGrammauta",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 499.16,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": -2.61,
@@ -92,7 +92,7 @@
    "cid": 27294891,
    "usuario": "nichory",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 492.47,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": 3.26,
@@ -120,7 +120,7 @@
    "cid": 27165404,
    "usuario": "DaanDouwe",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 497.79,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": -1.67,
@@ -134,7 +134,7 @@
    "cid": 10606890,
    "usuario": "Kastro67",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 496.39,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": 1.57,
@@ -476,8 +476,8 @@
  "historia": [
   {
    "fecha": "2026-09-29",
-   "valor": 4987.5,
-   "referencia": 100.0
+   "valor": 4970.73,
+   "referencia": 99.164
   }
  ],
  "registro": [
@@ -527,10 +527,10 @@
   "ref_mes": "2026-09",
   "ref_mtd": 0.51,
   "ref_valor": 100.0,
-  "valor": 100.0,
-  "ultimo_mtd": 0.51
+  "valor": 99.164,
+  "ultimo_mtd": -0.33
  },
- "ultima_ejecucion": "2026-09-29 20:42",
+ "ultima_ejecucion": "2026-09-29 20:57",
  "ultimo_error": null,
  "universo": 1088
 }
