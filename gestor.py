@@ -268,16 +268,34 @@ def rebalancear(est, cfg, eventos):
 def diario(est, cfg, eventos):
     hoy = ahora()
     mes = hoy.strftime("%Y-%m")
+    fallidas = []
     for c in list(est["copias"]):
         pausa()
-        mtd = mes_en_curso(c["cid"])
-        cerrados = {}
-        if mes != c["ref_mes"]:
-            pausa()
-            cerrados = meses_cerrados(c["cid"])
+        try:
+            mtd = mes_en_curso(c["cid"])
+            cerrados = {}
+            if mes != c["ref_mes"]:
+                pausa()
+                cerrados = meses_cerrados(c["cid"])
+        except RuntimeError:
+            # un trader que cierra la cuenta o deja de ser público no debe bloquear al resto:
+            # se queda con su último valor y, al tercer día seguido sin datos, se cierra
+            c["dias_sin_datos"] = c.get("dias_sin_datos", 0) + 1
+            fallidas.append(c)
+            continue
+        c["dias_sin_datos"] = 0
         valorar(c, mes, mtd, cerrados)
         if c["valor"] <= c["invertido"] * (1 - cfg["stop_por_trader"]):
             cerrar(est, cfg, c, eventos, f"stop del {cfg['stop_por_trader'] * 100:.0f} %")
+            est.setdefault("vetados", {})[str(c["cid"])] = sumar_meses(mes, 3)
+            reponer(est, cfg, mes, eventos)
+    if fallidas and len(fallidas) == len(est["copias"]):
+        for c in fallidas:
+            c["dias_sin_datos"] -= 1  # la caída general no cuenta contra ningún trader
+        raise RuntimeError("eToro no da datos de ninguna copia")  # caída general: no se toca nada
+    for c in fallidas:
+        if c["dias_sin_datos"] >= 3:
+            cerrar(est, cfg, c, eventos, "eToro lleva 3 días sin publicar sus datos; se cierra a su último valor")
             est.setdefault("vetados", {})[str(c["cid"])] = sumar_meses(mes, 3)
             reponer(est, cfg, mes, eventos)
     # referencia: mediana de los 500 Popular Investors más copiados, encadenada como una copia más
