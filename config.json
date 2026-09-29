@@ -1,0 +1,18 @@
+{
+  "modo": "papel",
+  "capital_inicial_eur": 5000,
+  "numero_de_traders": 10,
+  "stop_por_trader": 0.35,
+  "coste_por_lado": 0.0025,
+  "minimo_por_copia_eur": 175,
+  "dia_del_cambio": 1,
+  "mantener_si_sigue_en_el_mejor": 0.20,
+  "filtros": {
+    "semanas_registrado_min": 140,
+    "semanas_activas_2a_min": 100,
+    "excluir_cripto": true,
+    "riesgo_max": 6,
+    "ganancia_2a_min_pct": 5
+  },
+  "panel_url": "https://ondaona.github.io/copytrading/"
+}

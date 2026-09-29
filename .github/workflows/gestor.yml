@@ -1,0 +1,64 @@
+name: Gestor copy trading eToro (papel)
+
+on:
+  schedule:
+    # 06:30 UTC a diario: eToro ya ha cerrado el día anterior en todos los mercados.
+    - cron: "30 6 * * *"
+  workflow_dispatch:        # botón para lanzarlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write           # guarda estado.json y el panel en el propio repositorio
+
+concurrency:
+  group: gestor
+  cancel-in-progress: false # nunca dos ejecuciones a la vez: podrían duplicar operaciones
+
+jobs:
+  gestionar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Valorar, aplicar stops y, si toca, rotar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python gestor.py
+
+      - name: Guardar el estado y el panel
+        # También cuando el paso anterior falla: el panel muestra el error y la ejecución siguiente reintenta.
+        if: always()
+        run: |
+          git add estado.json docs/index.html
+          if git diff --cached --quiet; then
+            echo "sin cambios que guardar"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "estado: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
+
+      - name: Avisar si el trabajo ha fallado
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python - <<'PY'
+          import os, urllib.parse, urllib.request
+          texto = ("⚠️ <b>El gestor de copy trading ha fallado</b>\n\n"
+                   "No se ha tocado ninguna copia. Revisa la pestaña Actions del repositorio; "
+                   "mañana vuelve a intentarlo solo.")
+          datos = urllib.parse.urlencode({"chat_id": os.environ["TELEGRAM_CHAT_ID"],
+                                          "text": texto, "parse_mode": "HTML"}).encode()
+          urllib.request.urlopen("https://api.telegram.org/bot%s/sendMessage"
+                                 % os.environ["TELEGRAM_BOT_TOKEN"], data=datos, timeout=25)
+          PY
