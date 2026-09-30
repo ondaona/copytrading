@@ -152,7 +152,7 @@
    "cid": 10606890,
    "usuario": "Kastro67",
    "invertido": 498.75,
-   "valor": 498.75,
+   "valor": 496.39,
    "entrada": "2026-09-29",
    "ref_mes": "2026-09",
    "ref_mtd": 1.57,
@@ -499,6 +499,12 @@
    "valor": 4968.86,
    "referencia": 99.164,
    "msci": 182.2766
+  },
+  {
+   "fecha": "2026-09-30",
+   "valor": 4955.8,
+   "referencia": 99.164,
+   "msci": 181.8221
   }
  ],
  "registro": [
@@ -551,7 +557,7 @@
   "valor": 99.164,
   "ultimo_mtd": -0.33
  },
- "ultima_ejecucion": "2026-09-29 21:29",
+ "ultima_ejecucion": "2026-09-30 14:54",
  "ultimo_error": null,
  "universo": 1088,
  "inicio_mes": {
@@ -561,8 +567,8 @@
  },
  "mercado": {
   "fecha": "2026-09-29",
-  "urth": 206.77999877929688,
-  "eurusd": 1.13443,
-  "msci_eur": 182.2766
+  "urth": 206.7100067138672,
+  "eurusd": 1.13688,
+  "msci_eur": 181.8221
  }
 }
