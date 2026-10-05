@@ -88,7 +88,7 @@
    "cid": 29111978,
    "usuario": "AndreaGrammauta",
    "invertido": 498.75,
-   "valor": 484.66,
+   "valor": 484.71,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": -3.21,
@@ -104,7 +104,7 @@
    "cid": 27294891,
    "usuario": "nichory",
    "invertido": 498.75,
-   "valor": 502.32,
+   "valor": 502.66,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 2.2,
@@ -152,7 +152,7 @@
    "cid": 10606890,
    "usuario": "Kastro67",
    "invertido": 498.75,
-   "valor": 498.81,
+   "valor": 498.86,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 1.1,
@@ -529,6 +529,12 @@
    "valor": 4982.41,
    "referencia": 99.472,
    "msci": 184.3489
+  },
+  {
+   "fecha": "2026-10-05",
+   "valor": 5000.27,
+   "referencia": 99.511,
+   "msci": 185.429
   }
  ],
  "registro": [
@@ -578,10 +584,10 @@
   "ref_mes": "2026-10",
   "ref_mtd": 0.0,
   "ref_valor": 99.16426226246143,
-  "valor": 99.472,
-  "ultimo_mtd": 0.31
+  "valor": 99.511,
+  "ultimo_mtd": 0.35
  },
- "ultima_ejecucion": "2026-10-04 14:45",
+ "ultima_ejecucion": "2026-10-05 17:09",
  "ultimo_error": null,
  "universo": 1117,
  "inicio_mes": {
@@ -590,10 +596,10 @@
   "msci": 181.8221
  },
  "mercado": {
-  "fecha": "2026-10-02",
-  "urth": 207.52999877929688,
-  "eurusd": 1.12575,
-  "msci_eur": 184.3489
+  "fecha": "2026-10-05",
+  "urth": 208.02000427246094,
+  "eurusd": 1.12183,
+  "msci_eur": 185.429
  },
  "base": {
   "fecha": "2026-10-01",
