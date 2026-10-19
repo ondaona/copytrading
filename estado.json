@@ -40,7 +40,7 @@
    "cid": 14467545,
    "usuario": "SPX5000Trading",
    "invertido": 498.75,
-   "valor": 477.87,
+   "valor": 477.33,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 1.49,
@@ -56,7 +56,7 @@
    "cid": 16919151,
    "usuario": "Philipp_Hahn",
    "invertido": 498.75,
-   "valor": 465.82,
+   "valor": 464.84,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": -5.22,
@@ -104,7 +104,7 @@
    "cid": 27294891,
    "usuario": "nichory",
    "invertido": 498.75,
-   "valor": 465.87,
+   "valor": 465.58,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 2.2,
@@ -120,7 +120,7 @@
    "cid": 25840812,
    "usuario": "Alexander_Dimov",
    "invertido": 498.75,
-   "valor": 494.81,
+   "valor": 494.85,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": -4.65,
@@ -152,7 +152,7 @@
    "cid": 10606890,
    "usuario": "Kastro67",
    "invertido": 498.75,
-   "valor": 495.42,
+   "valor": 495.47,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 1.1,
@@ -613,6 +613,12 @@
    "valor": 4910.56,
    "referencia": 97.642,
    "msci": 183.5394
+  },
+  {
+   "fecha": "2026-10-19",
+   "valor": 4916.57,
+   "referencia": 97.617,
+   "msci": 184.3985
   }
  ],
  "registro": [
@@ -662,10 +668,10 @@
   "ref_mes": "2026-10",
   "ref_mtd": 0.0,
   "ref_valor": 99.16426226246143,
-  "valor": 97.642,
-  "ultimo_mtd": -1.5350000000000001
+  "valor": 97.617,
+  "ultimo_mtd": -1.56
  },
- "ultima_ejecucion": "2026-10-18 13:34",
+ "ultima_ejecucion": "2026-10-19 15:48",
  "ultimo_error": null,
  "universo": 1117,
  "inicio_mes": {
@@ -674,10 +680,10 @@
   "msci": 181.8221
  },
  "mercado": {
-  "fecha": "2026-10-16",
-  "urth": 206.33999633789062,
-  "eurusd": 1.12423,
-  "msci_eur": 183.5394
+  "fecha": "2026-10-19",
+  "urth": 206.97999572753906,
+  "eurusd": 1.12246,
+  "msci_eur": 184.3985
  },
  "base": {
   "fecha": "2026-10-01",
