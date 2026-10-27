@@ -40,7 +40,7 @@
    "cid": 14467545,
    "usuario": "SPX5000Trading",
    "invertido": 498.75,
-   "valor": 478.12,
+   "valor": 477.48,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 1.49,
@@ -72,7 +72,7 @@
    "cid": 13178325,
    "usuario": "Cosminpa",
    "invertido": 498.75,
-   "valor": 463.72,
+   "valor": 463.87,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 0.88,
@@ -104,7 +104,7 @@
    "cid": 27294891,
    "usuario": "nichory",
    "invertido": 498.75,
-   "valor": 460.84,
+   "valor": 460.64,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 2.2,
@@ -120,7 +120,7 @@
    "cid": 25840812,
    "usuario": "Alexander_Dimov",
    "invertido": 498.75,
-   "valor": 494.02,
+   "valor": 494.46,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": -4.65,
@@ -136,7 +136,7 @@
    "cid": 27165404,
    "usuario": "DaanDouwe",
    "invertido": 498.75,
-   "valor": 505.91,
+   "valor": 506.11,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": -1.9,
@@ -152,7 +152,7 @@
    "cid": 10606890,
    "usuario": "Kastro67",
    "invertido": 498.75,
-   "valor": 491.98,
+   "valor": 493.07,
    "entrada": "2026-09-29",
    "ref_mes": "2026-10",
    "ref_mtd": 1.1,
@@ -661,6 +661,12 @@
    "valor": 4915.32,
    "referencia": 96.73,
    "msci": 183.3836
+  },
+  {
+   "fecha": "2026-10-27",
+   "valor": 4930.65,
+   "referencia": 96.621,
+   "msci": 184.8762
   }
  ],
  "registro": [
@@ -710,10 +716,10 @@
   "ref_mes": "2026-10",
   "ref_mtd": 0.0,
   "ref_valor": 99.16426226246143,
-  "valor": 96.73,
-  "ultimo_mtd": -2.455
+  "valor": 96.621,
+  "ultimo_mtd": -2.565
  },
- "ultima_ejecucion": "2026-10-26 14:27",
+ "ultima_ejecucion": "2026-10-27 13:34",
  "ultimo_error": null,
  "universo": 1117,
  "inicio_mes": {
@@ -722,10 +728,10 @@
   "msci": 181.8221
  },
  "mercado": {
-  "fecha": "2026-10-23",
-  "urth": 205.14999389648438,
-  "eurusd": 1.11869,
-  "msci_eur": 183.3836
+  "fecha": "2026-10-26",
+  "urth": 206.22000122070312,
+  "eurusd": 1.11545,
+  "msci_eur": 184.8762
  },
  "base": {
   "fecha": "2026-10-01",
