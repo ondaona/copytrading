@@ -8,7 +8,7 @@
    "cid": 1297388,
    "usuario": "einargust",
    "invertido": 498.75,
-   "valor": 503.92,
+   "valor": 500.12,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": 0.76,
@@ -24,7 +24,7 @@
    "cid": 14930196,
    "usuario": "bhavesh_spx",
    "invertido": 498.75,
-   "valor": 485.29,
+   "valor": 491.58,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": -1.28,
@@ -40,7 +40,7 @@
    "cid": 14467545,
    "usuario": "SPX5000Trading",
    "invertido": 498.75,
-   "valor": 448.19,
+   "valor": 471.66,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": -4.93,
@@ -56,7 +56,7 @@
    "cid": 16919151,
    "usuario": "Philipp_Hahn",
    "invertido": 498.75,
-   "valor": 452.28,
+   "valor": 471.17,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": -4.01,
@@ -72,7 +72,7 @@
    "cid": 13178325,
    "usuario": "Cosminpa",
    "invertido": 498.75,
-   "valor": 427.43,
+   "valor": 460.39,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": -7.15,
@@ -88,7 +88,7 @@
    "cid": 27294891,
    "usuario": "nichory",
    "invertido": 498.75,
-   "valor": 416.16,
+   "valor": 453.37,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": -8.19,
@@ -104,7 +104,7 @@
    "cid": 25840812,
    "usuario": "Alexander_Dimov",
    "invertido": 498.75,
-   "valor": 522.09,
+   "valor": 506.4,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": 3.11,
@@ -120,7 +120,7 @@
    "cid": 27165404,
    "usuario": "DaanDouwe",
    "invertido": 498.75,
-   "valor": 513.55,
+   "valor": 505.06,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": 1.66,
@@ -136,7 +136,7 @@
    "cid": 10606890,
    "usuario": "Kastro67",
    "invertido": 498.75,
-   "valor": 479.21,
+   "valor": 488.74,
    "entrada": "2026-09-29",
    "ref_mes": "2026-11",
    "ref_mtd": -1.94,
@@ -152,7 +152,7 @@
    "cid": 8238177,
    "usuario": "EraserRain",
    "invertido": 478.72,
-   "valor": 478.72,
+   "valor": 494.7,
    "entrada": "2026-11-01",
    "ref_mes": "2026-11",
    "ref_mtd": -3.23,
@@ -703,6 +703,12 @@
    "valor": 4790.39,
    "referencia": 91.396,
    "msci": 183.8677
+  },
+  {
+   "fecha": "2026-11-03",
+   "valor": 4911.85,
+   "referencia": 95.783,
+   "msci": 182.6493
   }
  ],
  "registro": [
@@ -760,10 +766,10 @@
   "ref_mes": "2026-11",
   "ref_mtd": 0.0,
   "ref_valor": 95.7827609193115,
-  "valor": 91.396,
-  "ultimo_mtd": -4.58
+  "valor": 95.783,
+  "ultimo_mtd": 0.0
  },
- "ultima_ejecucion": "2026-11-02 17:27",
+ "ultima_ejecucion": "2026-11-03 15:33",
  "ultimo_error": null,
  "universo": 1127,
  "inicio_mes": {
@@ -772,10 +778,10 @@
   "msci": 182.9952
  },
  "mercado": {
-  "fecha": "2026-11-02",
-  "urth": 205.94500732421875,
-  "eurusd": 1.12007,
-  "msci_eur": 183.8677
+  "fecha": "2026-11-03",
+  "urth": 204.4199981689453,
+  "eurusd": 1.11919,
+  "msci_eur": 182.6493
  },
  "base": {
   "fecha": "2026-10-01",
