@@ -733,6 +733,12 @@
    "valor": 4802.01,
    "referencia": 93.517,
    "msci": 177.8281
+  },
+  {
+   "fecha": "2026-11-08",
+   "valor": 4802.01,
+   "referencia": 93.517,
+   "msci": 177.8281
   }
  ],
  "registro": [
@@ -793,7 +799,7 @@
   "valor": 93.517,
   "ultimo_mtd": -2.365
  },
- "ultima_ejecucion": "2026-11-07 14:26",
+ "ultima_ejecucion": "2026-11-08 14:45",
  "ultimo_error": null,
  "universo": 1127,
  "inicio_mes": {
