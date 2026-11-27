@@ -847,6 +847,12 @@
    "valor": 4713.84,
    "referencia": 88.604,
    "msci": 177.2934
+  },
+  {
+   "fecha": "2026-11-27",
+   "valor": 4726.73,
+   "referencia": 88.57,
+   "msci": 180.3293
   }
  ],
  "registro": [
@@ -904,10 +910,10 @@
   "ref_mes": "2026-11",
   "ref_mtd": 0.0,
   "ref_valor": 95.7827609193115,
-  "valor": 88.604,
-  "ultimo_mtd": -7.495
+  "valor": 88.57,
+  "ultimo_mtd": -7.529999999999999
  },
- "ultima_ejecucion": "2026-11-26 18:13",
+ "ultima_ejecucion": "2026-11-27 17:54",
  "ultimo_error": null,
  "universo": 1127,
  "inicio_mes": {
@@ -916,10 +922,10 @@
   "msci": 182.9952
  },
  "mercado": {
-  "fecha": "2026-11-25",
-  "urth": 194.5500030517578,
-  "eurusd": 1.09733,
-  "msci_eur": 177.2934
+  "fecha": "2026-11-27",
+  "urth": 197.33999633789062,
+  "eurusd": 1.09433,
+  "msci_eur": 180.3293
  },
  "base": {
   "fecha": "2026-10-01",
